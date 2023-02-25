@@ -2,33 +2,24 @@ using UnityEngine;
 using UnityEngine.AI;
 using BehaviorTree;
 
-public class TaskPatrol : Node
+public class TaskGoToTarget : Node
 {
     #region Private Fields
     private Transform _transform;
     private Animator _animator;
     private NavMeshAgent _navAgent;
 
-    private Transform[] _waypoints;
     private float _speed;
 
-    private int _currentWaypointIndex;
     private float thresholdDistance = 0.55f;
-
-    private float _waitTime = 1.0f;
-    private float _waitCounter = 0.0f;
-    private bool _waiting = false;
-
-
     #endregion
 
     #region Constructors
-    public TaskPatrol(Transform transform, Transform[] waypoints, float speed)
+    public TaskGoToTarget(Transform transform, float speed)
     {
         _transform = transform;
         _animator = transform.GetComponent<Animator>();
         _navAgent = transform.GetComponent<NavMeshAgent>();
-        _waypoints = waypoints;
         _speed = speed;
 
         _animator.SetFloat("MotionSpeed", 1.0f);
@@ -52,28 +43,13 @@ public class TaskPatrol : Node
     #region Public Methods
     public override NodeState Evaluate()
     {
-        if(_waiting)
-        {
-            _waitCounter += Time.deltaTime;
-            if(_waitCounter >= _waitTime) { _waiting = false; }
-        }
-        else
-        {
-            Transform wp = _waypoints[_currentWaypointIndex];
-            float dist = Vector3.Distance(_transform.position, wp.position);
-            if (Vector3.Distance(_transform.position, wp.position) < thresholdDistance)
-            {
-                _waitCounter = 0.0f;
-                _waiting = true;
+        Transform target = (Transform)GetData("target");
 
-                _currentWaypointIndex = (_currentWaypointIndex + 1) % _waypoints.Length;
-            }
-            else
-            {
-                _navAgent.SetDestination(wp.position);
-                _navAgent.speed = _speed;
-                FaceTarget();
-            }
+        if(Vector3.Distance(_transform.position, target.position) > thresholdDistance)
+        {
+            _navAgent.SetDestination(target.position);
+            _navAgent.speed = _speed;
+            FaceTarget();
         }
 
         _animator.SetFloat("Speed", _navAgent.velocity.magnitude);

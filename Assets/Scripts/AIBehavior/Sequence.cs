@@ -22,6 +22,8 @@ namespace BehaviorTree
                     case NodeState.FAILURE:
                         state = NodeState.FAILURE;
                         return state;
+                    case NodeState.SUCCESS:
+                        continue;
                     case NodeState.RUNNING:
                         anyChildIsRunning = true;
                         continue;
